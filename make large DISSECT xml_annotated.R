@@ -1,22 +1,12 @@
-library("seqinr")
-library("ShortRead")
-library("stringr")
-library("DescTools")
-library("XML")
-library("schoolmath")
 
-setwd("C:\\Users\\User\\Desktop\\make dissect xml")
+library(seqinr)
+library(ShortRead)
+library(stringr)
+library(DescTools)
+library(XML)
+library(schoolmath)
 
-##insert the seqs manually
-
-x <- xmlParse(file = "test.xml")
-
-##Format of data:
-#<data id="C6432679" name="alignment">
-#  <sequence id="seq_Ind1.3_hap15" taxon="Ind1.3_hap1" totalcount="4" value="---AATATGTTGACCATCTCCACCTTGAATTCTGCTACATGTGAAAGATATATTATCTACTTGTTGATACATGTCATGCCAATCCAACAAACGC-TTGCATATTTGAATATTTTATTTTAGCATTTAGCACATAGAAGATTTCCTTTA-------------------"/>
-#</data>
-
-setwd("C:\\Users\\User\\Desktop\\Tony-Bengt Paper\\BAM files\\final\\PIS and haplotype filtered\\final\\dissect-ready\\fastas_indels_biallelic\\upgma_lenient")
+## import individual alignments
 
 files <- list.files(pattern = "*.fasta")
 n <- c(1:length(files))
@@ -25,7 +15,7 @@ for (i in n) {
   file[[i]] <- readDNAStringSet(files[[i]], "fasta")
 }
 
-##make each line:
+# 1.) sequence data 
 
 data_id <- strsplit(files, ".fasta")
 
@@ -54,10 +44,6 @@ for (i in n) {
   value[[i]] <- as.character(file[[i]])
 }  
 
-#<data id="C6432679" name="alignment">
-#  <sequence id="seq_Ind1.3_hap15" taxon="Ind1.3_hap1" totalcount="4" value="---AATATGTTGACCATCTCCACCTTGAATTCTGCTACATGTGAAAGATATATTATCTACTTGTTGATACATGTCATGCCAATCCAACAAACGC-TTGCATATTTGAATATTTTATTTTAGCATTTAGCACATAGAAGATTTCCTTTA-------------------"/>
-#</data>
-
 dataline_beg <- list()
 for (i in n) {
   dataline_beg[[i]] <- paste0('<data id=\"', data_id[[i]], '\" name="alignment">')  ##remove the \ later on
@@ -75,14 +61,12 @@ for (i in n) {
   combined[[i]] <- c(dataline_beg[[i]], seqs[[i]], dataline_end[[i]])
 }
 
-setwd("C:\\Users\\User\\Desktop\\make dissect xml")
-
 fileConn <- file("seqdata.txt")
 writeLines(unlist(combined), fileConn)
 close(fileConn)
 
 
-###Great - next, let's set the clock rate priors:
+# 2.) clock rate models
 
 #<prior id="bdcGrowthRatePrior.t:Species" name="distribution" x="@bdcGrowthRate.t:Species">
 #  <LogNormal id="LogNormalDistributionModel.0" name="distr">
@@ -106,9 +90,9 @@ close(fileConn)
 #A few things need to be set up:
 #(1) insert the chromosome ID
 #(2) change the LogNormaDistributionModel number, start at 14
-#(3) change the RealParameter number, skip 2 each time
+#(3) change the RealParameter number
 
-data_id # (for 1)
+data_id
 
 a <- as.list(as.character(1:524))  # (for 2)
 
@@ -147,16 +131,12 @@ for (i in n) {
   clockrates[[i]] <- c(line1[[i]], line2[[i]], line3[[i]], line4[[i]], line5[[i]], line6[[i]])
 }
 
-clockrates[[2]]
-
-setwd("C:\\Users\\User\\Desktop\\make dissect xml")
-
 fileConn <- file("clockratedata.txt")
 writeLines(unlist(clockrates), fileConn)
 close(fileConn)
 
 
-##Tree rates also need to be set relative to the first alignment
+# 3.) tree rates need to be set relative to the first alignment
 
 #<tree id="Tree.t:C6432679" name="stateNode">
 #  <taxonset id="TaxonSet.C6432679" spec="TaxonSet">
@@ -199,14 +179,12 @@ for (i in n) {
                              line5[[i]], line6[[i]])
 }
 
-setwd("C:\\Users\\User\\Desktop\\make dissect xml")
-
 fileConn <- file("clockrateparamdata.txt")
 writeLines(unlist(clockratesparams), fileConn)
 close(fileConn)
 
 
-##RandomGeneTree additions
+# 4.) RandomGeneTree additions
 
 # <init id="RandomGeneTree.t:C6432679" spec="beast.evolution.speciation.RandomGeneTree" initial="@Tree.t:C6432679" speciesTree="@Tree.t:Species" taxa="@C6432679">
 # <populationModel id="RGTPopulationModel.t:C6432679" spec="ConstantPopulation">
@@ -241,14 +219,12 @@ for (i in n) {
   randomgenetree[[i]] <- c(line1[[i]], line2[[i]], line3[[i]], line4[[i]], line5[[i]])
 }
 
-setwd("C:\\Users\\User\\Desktop\\make dissect xml")
-
 fileConn <- file("randomgenetree.txt")
 writeLines(unlist(randomgenetree), fileConn)
 close(fileConn)
 
 
-##gtreeandcoalfactor
+# 5.) gtreeandcoalfactor
 
 #<geneTree id="gTreeCF.t:C6432679" spec="stacey.GtreeAndCoalFactor" tree="@Tree.t:C6432679"/>
 
@@ -257,14 +233,12 @@ for (i in n) {
   gtreeandcoalfactor[[i]] <- paste0('<geneTree id="gTreeCF.t:', data_id[[i]], '" spec="stacey.GtreeAndCoalFactor" tree="@Tree.t:', data_id[[i]], '"/>')
 }
 
-setwd("C:\\Users\\User\\Desktop\\make dissect xml")
-
 fileConn <- file("gtreeandcoalfactor.txt")
 writeLines(unlist(gtreeandcoalfactor), fileConn)
 close(fileConn)
 
 
-##treelikelihood:
+# 6.) treelikelihood:
 
 #  <distribution id="treeLikelihood.C6422483" spec="TreeLikelihood" data="@C6422483" tree="@Tree.t:C6422483">
 #  <siteModel id="SiteModel.s:C6422483" spec="SiteModel">
@@ -322,13 +296,11 @@ for (i in n) {
                            line6[[i]], line7[[i]], line8[[i]], line9[[i]])
 }
 
-setwd("C:\\Users\\User\\Desktop\\make dissect xml")
-
 fileConn <- file("treelikelihood.txt")
 writeLines(unlist(treelikelihood), fileConn)
 close(fileConn)
 
-###genetreeshorts
+# 7.) genetreeshorts
 
 #<geneTree idref="Tree.t:C6432679"/>
 
@@ -337,14 +309,11 @@ for (i in n) {
   genetreeshorts[[i]] <- paste0('<geneTree idref="Tree.t:', data_id[[i]], '"/>')
 }
 
-setwd("C:\\Users\\User\\Desktop\\make dissect xml")
-
 fileConn <- file("genetreeshorts.txt")
 writeLines(unlist(genetreeshorts), fileConn)
 close(fileConn)
 
-
-#up
+# 8.) up
 
 #<up idref="clockRate.c:C6432679"/>
 
@@ -353,14 +322,12 @@ for (i in n) {
   up[[i]] <- paste0('<up idref="clockRate.c:', data_id[[i]], '"/>')
 }
 
-setwd("C:\\Users\\User\\Desktop\\make dissect xml")
-
 fileConn <- file("up.txt")
 writeLines(unlist(up), fileConn)
 close(fileConn)
 
 
-#down
+# 9.) down
 
 #<down idref="Tree.t:C6432679"/>
 
@@ -369,15 +336,13 @@ for (i in n) {
   down[[i]] <- paste0('<down idref="Tree.t:', data_id[[i]], '"/>')
 }
 
-setwd("C:\\Users\\User\\Desktop\\make dissect xml")
-
 fileConn <- file("down.txt")
 writeLines(unlist(down), fileConn)
 close(fileConn)
 
 
 
-# clockscaler
+# 10.) clockscaler
 
 #<operator id="StrictClockRateScaler.c:C6432679" spec="ScaleOperator" parameter="@clockRate.c:C6432679" scaleFactor="0.75" weight="3.0"/>
 #<operator id="treeScaler.t:C6432679" spec="ScaleOperator" scaleFactor="0.5" tree="@Tree.t:C6432679" weight="3.0"/>
@@ -456,14 +421,12 @@ for (i in n) {
                         line9[[i]], line10[[i]], line11[[i]], line12[[i]])
 }
 
-setwd("C:\\Users\\User\\Desktop\\make dissect xml")
-
 fileConn <- file("clockscaler.txt")
 writeLines(unlist(clockscaler), fileConn)
 close(fileConn)
 
 
-##updown
+# 11.) updown
 
 #  <operator id="strictClockUpDownOperator.c:C6432679" spec="UpDownOperator" scaleFactor="0.75" weight="3.0">
 #  <up idref="clockRate.c:C6432679"/>
@@ -492,14 +455,12 @@ for (i in n) {
   operator[[i]] <- c(line1[[i]], line2[[i]], line3[[i]], line4[[i]])
 }
 
-setwd("C:\\Users\\User\\Desktop\\make dissect xml")
-
 fileConn <- file("operator.txt")
 writeLines(unlist(operator), fileConn)
 close(fileConn)
 
 
-#likelogger
+# 12.) likelogger
 
 # <log idref="treeLikelihood.C6432679"/>
 # <log id="TreeHeight.t:C6432679" spec="beast.evolution.tree.TreeHeightLogger" tree="@Tree.t:C6432679"/>  
@@ -528,13 +489,11 @@ for (i in n) {
   likelogger[[i]] <- c(line1[[i]], line2[[i]], line3[[i]])
 }
 
-setwd("C:\\Users\\User\\Desktop\\make dissect xml")
-
 fileConn <- file("likelogger.txt")
 writeLines(unlist(likelogger), fileConn)
 close(fileConn)
 
-##logger
+# 13.) logger
 
 #  <logger id="treelog.t:C6432679" fileName="$(tree).trees" logEvery="5000" mode="tree">
 #  <log id="TreeWithMetaDataLogger.t:C6432679" spec="beast.evolution.tree.TreeWithMetaDataLogger" tree="@Tree.t:C6432679"/>
@@ -557,12 +516,6 @@ for (i in n) {
   logger[[i]] <- c(line1[[i]], line2[[i]], line3[[i]])
 }
 
-setwd("C:\\Users\\User\\Desktop\\make dissect xml")
-
 fileConn <- file("logger.txt")
 writeLines(unlist(logger), fileConn)
 close(fileConn)
-
-
-
-
