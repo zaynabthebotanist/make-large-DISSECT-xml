@@ -6,6 +6,8 @@ library(DescTools)
 library(XML)
 library(schoolmath)
 
+setwd("C:\\Users\\User\\Desktop\\Tony-Bengt Paper\\BAM files\\final\\PIS and haplotype filtered\\final\\dissect-ready\\fastas_indels_biallelic\\upgma_lenient")
+
 ## import individual alignments
 
 files <- list.files(pattern = "*.fasta")
@@ -519,3 +521,31 @@ for (i in n) {
 fileConn <- file("logger.txt")
 writeLines(unlist(logger), fileConn)
 close(fileConn)
+
+
+# <logger id="treelog.t:C7963483" fileName="$(tree).trees" logEvery="250000" mode="tree">
+# <log id="TreeWithMetaDataLogger.t:C7963483" spec="beast.evolution.tree.TreeWithMetaDataLogger" tree="@Tree.t:C7963483"/>
+# </logger>
+
+line1 <- list()
+for (i in n) {
+  line1[[i]] <- paste0('<logger id="treelog.t:', data_id[[i]], '" fileName="$(tree).trees" logEvery="250000" mode="tree">')
+}
+
+line2 <- list()
+for (i in n) {
+  line2[[i]] <- paste0('<log id="TreeWithMetaDataLogger.t:', data_id[[i]], '" spec="beast.evolution.tree.TreeWithMetaDataLogger" tree="@Tree.t:', data_id[[i]], '"/>')
+}
+
+line3 <- as.list(rep("</logger>", 524))
+
+logger <- list()
+for (i in n) {
+  logger[[i]] <- c(line1[[i]], line2[[i]], line3[[i]])
+}
+
+fileConn <- file("screenlogger.txt")
+writeLines(unlist(logger), fileConn)
+close(fileConn)
+
+
