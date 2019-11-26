@@ -6,8 +6,6 @@ library(DescTools)
 library(XML)
 library(schoolmath)
 
-setwd("C:\\Users\\User\\Desktop\\Tony-Bengt Paper\\BAM files\\final\\PIS and haplotype filtered\\final\\dissect-ready\\fastas_indels_biallelic\\upgma_lenient")
-
 ## import individual alignments
 
 files <- list.files(pattern = "*.fasta")
